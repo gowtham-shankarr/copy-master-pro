@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Help & Documentation - Copy Master Pro</title>
+    <link rel="stylesheet" href="popup.css" />
+    <style>
+      body {
+        width: 100%;
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+        line-height: 1.6;
+      }
+
+      .help-section {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+      }
+
+      .help-section h2 {
+        color: var(--ink);
+        margin-top: 0;
+        margin-bottom: 15px;
+        border-bottom: 2px solid var(--primary1);
+        padding-bottom: 10px;
+      }
+
+      .help-section h3 {
+        color: var(--ink);
+        margin-top: 20px;
+        margin-bottom: 10px;
+      }
+
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 15px;
+        margin: 15px 0;
+      }
+
+      .feature-card {
+        background: var(--bg);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 15px;
+      }
+
+      .feature-card h4 {
+        color: var(--ink);
+        margin-top: 0;
+        margin-bottom: 8px;
+        font-size: 16px;
+      }
+
+      .feature-card p {
+        color: var(--muted);
+        font-size: 14px;
+        margin: 0;
+      }
+
+      .shortcut {
+        background: var(--primary1);
+        color: white;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-family: monospace;
+      }
+
+      .example {
+        background: var(--bg);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 10px;
+        font-family: monospace;
+        font-size: 13px;
+        color: var(--ink);
+        margin: 10px 0;
+      }
+
+      .tip {
+        background: rgba(255, 193, 7, 0.1);
+        border-left: 4px solid #ffc107;
+        padding: 10px;
+        margin: 15px 0;
+        border-radius: 0 6px 6px 0;
+      }
+
+      .tip strong {
+        color: #ffc107;
+      }
+
+      .warning {
+        background: rgba(220, 53, 69, 0.1);
+        border-left: 4px solid #dc3545;
+        padding: 10px;
+        margin: 15px 0;
+        border-radius: 0 6px 6px 0;
+      }
+
+      .warning strong {
+        color: #dc3545;
+      }
+
+      .nav-tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 10px;
+      }
+
+      .nav-tab {
+        background: var(--card);
+        border: 1px solid var(--line);
+        color: var(--ink);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: 0.15s background;
+      }
+
+      .nav-tab.active {
+        background: var(--primary1);
+        color: white;
+      }
+
+      .tab-content {
+        display: none;
+      }
+
+      .tab-content.active {
+        display: block;
+      }
+
+      .toc {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .toc h3 {
+        margin-top: 0;
+        margin-bottom: 15px;
+        color: var(--ink);
+        font-size: 18px;
+        border-bottom: 2px solid var(--primary1);
+        padding-bottom: 10px;
+      }
+
+      .toc ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 8px;
+      }
+
+      .toc li {
+        margin: 0;
+      }
+
+      .toc a {
+        color: var(--ink);
+        text-decoration: none;
+        padding: 10px 12px;
+        display: flex;
+        align-items: center;
+        background: var(--bg);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        font-size: 14px;
+      }
+
+      .toc a:hover {
+        background: var(--primary1);
+        color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      /* Header improvements */
+      .hd {
+        text-align: center;
+        padding: 20px 0;
+        border-bottom: 2px solid var(--line);
+        margin-bottom: 30px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+      }
+
+      .logo {
+        font-size: 32px;
+      }
+
+      .title {
+        font-size: 24px;
+        font-weight: 600;
+      }
+
+      /* Floating help button hover effect */
+      #floatingHelp:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="hd">
+        <div class="brand">
+          <div>📚 Copy Master Pro</div>
+          <div class="title">Help & Documentation</div>
+        </div>
+      </header>
+
+      <!-- Floating Help Button -->
+      <div
+        id="floatingHelp"
+        style="
+          position: fixed;
+          bottom: 20px;
+          right: 20px;
+          background: var(--primary1, #007bff);
+          color: white;
+          border: none;
+          border-radius: 50%;
+          width: 60px;
+          height: 60px;
+          font-size: 24px;
+          cursor: pointer;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+          z-index: 1000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s ease;
+        "
+        title="Help Documentation"
+      >
+        ❓
+      </div>
+
+      <div class="toc">
+        <h3>📋 Table of Contents</h3>
+        <ul>
+          <li><a href="#getting-started">🚀 Getting Started</a></li>
+          <li><a href="#core-features">⚡ Core Features</a></li>
+          <li><a href="#text-formatting">📝 Text & Formatting</a></li>
+          <li><a href="#content-helpers">🎨 Content Helpers</a></li>
+          <li><a href="#productivity">⚙️ Productivity Suite</a></li>
+          <li><a href="#keyboard-shortcuts">⌨️ Keyboard Shortcuts</a></li>
+          <li><a href="#troubleshooting">🔧 Troubleshooting</a></li>
+        </ul>
+      </div>
+
+      <div id="getting-started" class="help-section">
+        <h2>🚀 Getting Started</h2>
+
+        <h3>Quick Start Guide</h3>
+        <p>
+          Copy Master Pro is a powerful browser extension that enhances your
+          copying and content management capabilities.
+        </p>
+
+        <div class="feature-grid">
+          <div class="feature-card">
+            <h4>1. Install Extension</h4>
+            <p>
+              Load the extension in Chrome's developer mode or install from the
+              Chrome Web Store.
+            </p>
+          </div>
+          <div class="feature-card">
+            <h4>2. Click Extension Icon</h4>
+            <p>
+              Click the extension icon in your toolbar to open the main panel.
+            </p>
+          </div>
+          <div class="feature-card">
+            <h4>3. Select & Copy</h4>
+            <p>
+              Select text on any webpage, then click any feature button to
+              process and copy.
+            </p>
+          </div>
+        </div>
+
+        <div class="tip">
+          <strong>💡 Tip:</strong> Most features work with selected text. If no
+          text is selected, some features will open a picker to let you choose
+          content.
+        </div>
+      </div>
+
+      <div id="core-features" class="help-section">
+        <h2>⚡ Core Features</h2>
+
+        <h3>Basic Copy Operations</h3>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <h4>📄 Plain Text</h4>
+            <p>Copy selected text as plain text, removing all formatting.</p>
+          </div>
+          <div class="feature-card">
+            <h4>🌐 HTML</h4>
+            <p>Copy text with HTML formatting preserved.</p>
+          </div>
+          <div class="feature-card">
+            <h4>📝 Markdown</h4>
+            <p>Convert text to Markdown format for easy sharing.</p>
+          </div>
+          <div class="feature-card">
+            <h4>🧹 Clean Copy</h4>
+            <p>
+              Remove tracking parameters, zero-width characters, and normalize
+              whitespace.
+            </p>
+          </div>
+        </div>
+
+        <h3>Advanced Copy Features</h3>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <h4>📋 Copy with Source</h4>
+            <p>Copy text along with the page title and URL for attribution.</p>
+          </div>
+          <div class="feature-card">
+            <h4>🔗 Extract Links</h4>
+            <p>
+              Extract all links from the page or selected content with titles.
+            </p>
+          </div>
+          <div class="feature-card">
+            <h4>📊 Table Export</h4>
+            <p>Export tables as CSV, TSV, or XLSX format.</p>
+          </div>
+          <div class="feature-card">
+            <h4>🖼️ Image Operations</h4>
+            <p>Copy images to clipboard or save them to your computer.</p>
+          </div>
+        </div>
+
+        <div class="example">
+          <strong>Example - Clean Copy:</strong><br />
+          Before: "Hello\u200B world with utm_source=google"<br />
+          After: "Hello world"
+        </div>
+      </div>
+
+      <div id="text-formatting" class="help-section">
+        <h2>📝 Text & Formatting</h2>
+
+        <h3>Case Conversion</h3>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <h4>🔤 UPPERCASE</h4>
+            <p>Convert text to all uppercase letters.</p>
+          </div>
+          <div class="feature-card">
+            <h4>🔤 lowercase</h4>
+            <p>Convert text to all lowercase letters.</p>
+          </div>
+          <div class="feature-card">
+            <h4>🔤 Title Case</h4>
+            <p>Capitalize the first letter of each word.</p>
+          </div>
+          <div class="feature-card">
+            <h4>🔤 Smart Title Case</h4>
+            <p>APA-style title casing with stopwords in lowercase.</p>
+          </div>
+        </div>
+
+        <div class="feature-grid">
+          <div class="feature-card">
+            <h4>🐪 camelCase</h4>
+            <p>Convert to camelCase format.</p>
+          </div>
+          <div class="feature-card">
+            <h4>🐍 snake_case</h4>
+            <p>Convert to snake_case format.</p>
+          </div>
+          <div class="feature-card">
+            <h4>🍖 kebab-case</h4>
+            <p>Convert to kebab-case format.</p>
+          </div>
+          <div class="feature-card">
+            <h4>🏛️ PascalCase</h4>
+            <p>Convert to PascalCase format.</p>
+          </div>
+        </div>
+
+        <h3>Text Processing</h3>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <h4>🔧 Unicode Fix</h4>
+            <p>
+              Convert smart quotes to straight quotes, normalize dashes, remove
+              zero-width characters.
+            </p>
+          </div>
+          <div class="feature-card">
+            <h4>🔗 Slugify</h4>
+            <p>Convert text to URL-friendly slug format.</p>
+          </div>
+          <div class="feature-card">
+            <h4>📄 JSON Format</h4>
+            <p>Format JSON text with proper indentation.</p>
+          </div>
+          <div class="feature-card">
+            <h4>💻 Code Syntax</h4>
+            <p>Wrap code in markdown code blocks with language detection.</p>
+          </div>
+        </div>
+
+        <div class="example">
+          <strong>Example - Smart Title Case:</strong><br />
+          Input: "the quick brown fox jumps over the lazy dog"<br />
+          Output: "The Quick Brown Fox Jumps Over the Lazy Dog"
+        </div>
+      </div>
+
+      <div id="content-helpers" class="help-section">
+        <h2>🎨 Content Helpers</h2>
+
+        <h3>Design & Development Tools</h3>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <h4>🎨 Color Picker</h4>
+            <p>Pick colors from any webpage and copy hex/RGB values.</p>
+          </div>
+          <div class="feature-card">
+            <h4>🌈 Color Palette</h4>
+            <p>
+              Generate color palettes from a base color (tints, shades,
+              complementary).
+            </p>
+          </div>
+          <div class="feature-card">
+            <h4>⚖️ Contrast Checker</h4>
+            <p>
+              Check WCAG contrast ratio between two colors for accessibility.
+            </p>
+          </div>
+        </div>
+
+        <h3>Content Extraction</h3>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <h4>📄 Meta/OG Scraper</h4>
+            <p>
+              Extract page metadata, Open Graph tags, and Twitter card data.
+            </p>
+          </div>
+          <div class="feature-card">
+            <h4>🖼️ Image URL Extractor</h4>
+            <p>
+              Extract URLs of all images from a page with a popup showing image
+              names, dimensions, and individual copy buttons.
+            </p>
+          </div>
+        </div>
+
+        <div class="tip">
+          <strong>💡 Tip:</strong> Color Picker and Contrast Checker use a
+          special picker interface. Click the first color, then the second color
+          for contrast checking.
+        </div>
+      </div>
+
+      <div id="productivity" class="help-section">
+        <h2>⚙️ Productivity Suite</h2>
+
+        <h3>Clipboard Management</h3>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <h4>📋 Clipboard History</h4>
+            <p>
+              View, search, and re-copy your last 100 copied items with
+              filtering.
+            </p>
+          </div>
+          <div class="feature-card">
+            <h4>📚 Snippets Library</h4>
+            <p>
+              Save and manage reusable text snippets with variables and tags.
+            </p>
+          </div>
+        </div>
+
+        <h3>Automation & Rules</h3>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <h4>⚙️ Per-Site Rules</h4>
+            <p>
+              Create automatic text cleaning and formatting rules for specific
+              websites.
+            </p>
+          </div>
+          <div class="feature-card">
+            <h4>💾 Save as Snippet</h4>
+            <p>Quickly save selected text as a new snippet for later use.</p>
+          </div>
+          <div class="feature-card">
+            <h4>🔧 Apply Site Rules</h4>
+            <p>Manually apply current site's rules to selected text.</p>
+          </div>
+          <div class="feature-card">
+            <h4>📝 File Naming Tokens</h4>
+            <p>
+              Customize saved file names using variables like {title}, {date},
+              {w}x{h}.
+            </p>
+          </div>
+        </div>
+
+        <h3>Snippet Variables</h3>
+        <p>Use these variables in your snippets for dynamic content:</p>
+        <div class="example">
+          {date} - Current date (MM/DD/YYYY)<br />
+          {time} - Current time (HH:MM:SS)<br />
+          {host} - Current website domain<br />
+          {title} - Current page title<br />
+          {url} - Current page URL
+        </div>
+
+        <h3>File Naming Tokens</h3>
+        <p>Available tokens for custom file naming:</p>
+        <div class="example">
+          {title} - Page title<br />
+          {title:slug} - Slugified title<br />
+          {host} - Domain name<br />
+          {date:YYYY-MM-DD} - Custom date format<br />
+          {time:HHmmss} - 24-hour time<br />
+          {w}x{h} - Width x Height<br />
+          {ext} - File extension<br />
+          {seq} - Auto-increment number
+        </div>
+      </div>
+
+      <div id="keyboard-shortcuts" class="help-section">
+        <h2>⌨️ Keyboard Shortcuts</h2>
+
+        <div class="feature-grid">
+          <div class="feature-card">
+            <h4><span class="shortcut">Ctrl+Shift+C</span> Clean Copy</h4>
+            <p>Quick clean copy with text cleaning applied.</p>
+          </div>
+          <div class="feature-card">
+            <h4><span class="shortcut">Ctrl+Shift+S</span> Color Picker</h4>
+            <p>Quick color picker for any element.</p>
+          </div>
+          <div class="feature-card">
+            <h4><span class="shortcut">Ctrl+Shift+U</span> Unicode Fix</h4>
+            <p>Quick unicode character normalization.</p>
+          </div>
+          <div class="feature-card">
+            <h4><span class="shortcut">Ctrl+Shift+T</span> Smart Title Case</h4>
+            <p>Quick APA-style title casing.</p>
+          </div>
+        </div>
+
+        <div class="tip">
+          <strong>💡 Tip:</strong> On Mac, use
+          <span class="shortcut">Cmd</span> instead of
+          <span class="shortcut">Ctrl</span>.
+        </div>
+      </div>
+
+      <div id="troubleshooting" class="help-section">
+        <h2>🔧 Troubleshooting</h2>
+
+        <h3>Common Issues</h3>
+
+        <div class="warning">
+          <strong>⚠️ "Cannot access this page"</strong><br />
+          This happens on restricted pages like chrome:// URLs. Try using the
+          extension on regular websites.
+        </div>
+
+        <div class="warning">
+          <strong>⚠️ "Nothing to copy"</strong><br />
+          Make sure you have text selected before using copy features, or the
+          selected element contains text.
+        </div>
+
+        <div class="tip">
+          <strong>💡 Feature not working?</strong><br />
+          Try refreshing the page and selecting text again. Some features
+          require text selection.
+        </div>
+
+        <h3>Browser Compatibility</h3>
+        <ul>
+          <li>✅ Chrome 88+ (Recommended)</li>
+          <li>✅ Edge 88+</li>
+          <li>✅ Brave (Chromium-based)</li>
+          <li>❌ Firefox (Not supported)</li>
+          <li>❌ Safari (Not supported)</li>
+        </ul>
+
+        <h3>Permissions</h3>
+        <p>The extension requires these permissions:</p>
+        <ul>
+          <li><strong>Active Tab:</strong> To access the current webpage</li>
+          <li>
+            <strong>Storage:</strong> To save your history, snippets, and
+            settings
+          </li>
+          <li><strong>Downloads:</strong> To save images and files</li>
+          <li><strong>Clipboard:</strong> To copy content to your clipboard</li>
+        </ul>
+      </div>
+
+      <div class="help-section">
+        <h2>📞 Support</h2>
+        <p>If you need help or have suggestions:</p>
+        <ul>
+          <li>📧 Email: support@oneclickcopypro.com</li>
+          <li>🐛 Report bugs on GitHub</li>
+          <li>💡 Feature requests welcome</li>
+        </ul>
+
+        <div class="tip">
+          <strong>💡 Pro Tip:</strong> Use the extension regularly to build up
+          your clipboard history and snippets library for maximum productivity!
+        </div>
+      </div>
+    </div>
+
+    <div
+      style="
+        text-align: center;
+        margin-top: 20px;
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+      "
+    >
+      <button
+        id="helpBtn"
+        class="btn"
+        title="Help & Documentation"
+        style="padding: 4px 8px; font-size: 14px"
+      >
+        ❓ Help Documentation
+      </button>
+      <button
+        id="requestFeatureBtn"
+        class="btn"
+        title="Request a Feature"
+        style="padding: 4px 8px; font-size: 14px"
+      >
+        💡 Request Feature
+      </button>
+    </div>
+
+    <script src="help.js"></script>
+  </body>
+</html>

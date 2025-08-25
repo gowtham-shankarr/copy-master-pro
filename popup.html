@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CopyMaster Pro</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="hd">
+        <div class="brand">
+          <div class="pro">📋 Copy Master Pro</div>
+        </div>
+      </header>
+
+      <section class="card">
+        <div class="card-title">Copy & Extract</div>
+        <div class="grid">
+          <button id="tText" class="btn primary">Copy Text</button>
+          <button id="tHtml" class="btn">Copy HTML</button>
+          <button id="tMd" class="btn">Copy Markdown</button>
+          <button id="cleanCopy" class="btn">Clean Copy</button>
+          <button id="copyWithSource" class="btn">Copy with Source</button>
+          <button id="extractLinksEnhanced" class="btn">Extract Links</button>
+          <button id="tableExportEnhanced" class="btn">Table → CSV/TSV</button>
+          <button id="jsonFormat" class="btn">Format JSON</button>
+          <button id="codeSyntax" class="btn">Code Syntax</button>
+          <button id="colorPicker" class="btn">Color Picker</button>
+          <button id="imgCopy" class="btn">Copy Image → Clipboard</button>
+          <button id="imgSave" class="btn">Save Image → File</button>
+        </div>
+        <div class="hint">
+          Tip: hover to highlight, then click. Shortcuts:
+          <kbd>Ctrl/⌘+Shift+C</kbd> clean copy, <kbd>Ctrl/⌘+Shift+S</kbd> color
+          picker.
+        </div>
+        <div
+          class="hint"
+          style="color: #f56565; font-size: 12px; margin-top: 8px"
+        >
+          Note: Works on regular websites. Browser pages (chrome://, about:,
+          etc.) are not supported.
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-title">Text & Formatting</div>
+        <div class="grid case-grid">
+          <button id="caseUppercase" class="btn case-btn">UPPERCASE</button>
+          <button id="caseLowercase" class="btn case-btn">lowercase</button>
+          <button id="caseTitlecase" class="btn case-btn">Title Case</button>
+          <button id="smartTitleCase" class="btn case-btn">
+            Smart Title Case
+          </button>
+          <button id="caseCamelcase" class="btn case-btn">camelCase</button>
+          <button id="caseSnakecase" class="btn case-btn">snake_case</button>
+          <button id="caseKebabcase" class="btn case-btn">kebab-case</button>
+          <button id="casePascalcase" class="btn case-btn">PascalCase</button>
+          <button id="slugify" class="btn case-btn">Slugify</button>
+          <button id="unicodeFix" class="btn case-btn">Unicode Fix</button>
+        </div>
+        <div class="hint">
+          Shortcuts: <kbd>Ctrl/⌘+Shift+U</kbd> Unicode Fix,
+          <kbd>Ctrl/⌘+Shift+T</kbd> Smart Title Case.
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-title">Content Helpers</div>
+        <div class="grid">
+          <button id="metaOgScraper" class="btn">Meta/OG Scraper</button>
+          <button id="imageDownloader" class="btn">Image URL Extractor</button>
+          <button id="contrastChecker" class="btn">Contrast Checker</button>
+          <button id="colorPalette" class="btn">Color Palette</button>
+        </div>
+        <div class="hint">
+          Tip: Hover to target a specific element (image, color, text) before
+          clicking.
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-title">Productivity</div>
+        <div class="grid">
+          <button id="openClipboardHistory" class="btn">
+            Clipboard History
+          </button>
+          <button id="openSnippetsLibrary" class="btn">Snippets Library</button>
+          <button id="manageSiteRules" class="btn">Per-Site Rules</button>
+          <button id="setFileNamePattern" class="btn">
+            File Naming Tokens
+          </button>
+          <button id="saveAsSnippet" class="btn">Save as Snippet</button>
+          <button id="applySiteRules" class="btn">Apply Site Rules</button>
+        </div>
+        <div class="hint">
+          Suggested tokens: <code>{title}</code> <code>{date}</code>
+          <code>{time}</code> <code>{host}</code> <code>{w}x{h}</code>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-title">History</div>
+        <div class="row between">
+          <div class="muted">Last 100 items</div>
+          <button id="clear" class="link">Clear</button>
+        </div>
+        <ul id="historyList" class="history"></ul>
+      </section>
+
+      <div
+        style="
+          text-align: center;
+          margin-top: 20px;
+          display: flex;
+          gap: 10px;
+          justify-content: center;
+          margin-bottom: 20px;
+        "
+      >
+        <button
+          id="helpBtn"
+          class="btn"
+          title="Help & Documentation"
+          style="padding: 4px 8px; font-size: 14px"
+        >
+          ❓ Help Documentation
+        </button>
+        <button
+          id="requestFeatureBtn"
+          class="btn"
+          title="Request a Feature"
+          style="padding: 4px 8px; font-size: 14px"
+        >
+          💡 Request Feature
+        </button>
+      </div>
+    </div>
+    <script src="popup.js"></script>
+  </body>
+</html>

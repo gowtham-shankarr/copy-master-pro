@@ -1,0 +1,233 @@
+:root {
+  --bg: #0b0f1f;
+  --card: #121733;
+  --ink: #eef1ff;
+  --muted: #b7c2ff;
+  --line: #27306b;
+  --primary1: #2a3a92;
+  --primary2: #222c6d;
+  --accent: #389f7b;
+}
+
+:root[data-theme="light"] {
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --ink: #1e293b;
+  --muted: #64748b;
+  --line: #e2e8f0;
+  --primary1: #3b82f6;
+  --primary2: #2563eb;
+  --accent: #10b981;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  width: 420px;
+  background: var(--bg);
+  color: var(--ink);
+  font: 13.5px/1.5 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
+    Inter, Arial;
+}
+.wrap {
+  padding: 14px;
+  display: grid;
+  gap: 12px;
+}
+.hd .brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.theme-btn {
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  padding: 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.15s background;
+}
+
+.theme-btn:hover {
+  background: var(--card);
+}
+.logo {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  background: #0f1633;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.title {
+  font-weight: 800;
+  font-size: 16px;
+  letter-spacing: 0.2px;
+}
+.pro {
+  color: #9aa6ff;
+  font-size: 16px;
+  font-weight: bold;
+}
+.card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px;
+  display: grid;
+  gap: 8px;
+}
+.card-title {
+  font-weight: 700;
+  opacity: 0.95;
+}
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.case-grid {
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 6px;
+}
+.btn {
+  border: 1px solid var(--line);
+  background: #0f1633;
+  color: var(--ink);
+  padding: 10px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: 0.15s transform, 0.15s background;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.btn:hover {
+  transform: translateY(-1px);
+  background: #16204b;
+}
+.btn.primary {
+  background: linear-gradient(180deg, var(--primary1), var(--primary2));
+  border-color: #4250a8;
+}
+.btn.accent {
+  border-color: #2e8266;
+  background: linear-gradient(180deg, #235c49, #1a4236);
+}
+.hint {
+  color: var(--muted);
+  font-size: 12px;
+}
+kbd {
+  background: #0f1633;
+  padding: 2px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+}
+
+.case-btn {
+  font-size: 11px;
+  padding: 8px 10px;
+  background: #1a1f3a;
+  border-color: #2a2f4a;
+  font-weight: 500;
+}
+
+.case-btn:hover {
+  background: #2a2f4a;
+  transform: translateY(-1px);
+}
+.history {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  max-height: 220px;
+  overflow: auto;
+  display: grid;
+  gap: 6px;
+}
+.hitem {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 8px;
+  border-radius: 10px;
+  background: #0f1633;
+  border: 1px solid var(--line);
+}
+.kind {
+  font-size: 11px;
+  padding: 2px 6px;
+  background: #1b2552;
+  border-radius: 999px;
+}
+.preview {
+  flex: 1;
+  max-height: 52px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+.copy {
+  border: none;
+  background: #1b2552;
+  color: var(--ink);
+  border-radius: 8px;
+  padding: 6px 8px;
+  cursor: pointer;
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.between {
+  justify-content: space-between;
+}
+.link {
+  border: none;
+  background: none;
+  color: #9aa6ff;
+  cursor: pointer;
+}
+.__occs_overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483646;
+  pointer-events: none;
+}
+.__occs_rect {
+  pointer-events: none;
+}
+.__occs_hint {
+  pointer-events: none;
+}
+
+.__occs_overlay,
+.__occs_rect,
+.__occs_hint {
+  pointer-events: none;
+}
+
+.__occs_overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483646;
+  pointer-events: none;
+}
+.__occs_rect,
+.__occs_hint {
+  pointer-events: none;
+}

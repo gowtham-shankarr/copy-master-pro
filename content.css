@@ -1,0 +1,6 @@
+
+:root{ --ink:#e8ecff; --bg:transparent; --accent:#6c7cff; }
+.__occs_toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);padding:10px 14px;background:rgba(0,0,0,.85);color:#fff;border-radius:8px;font:14px/1.4 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto;z-index:2147483647;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.__occs_overlay{position:fixed;inset:0;z-index:2147483647;pointer-events:none;display:none}
+.__occs_hint{position:fixed;background:#2a3a92;color:#fff;padding:4px 8px;border-radius:6px;font:12px/1.4 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto;box-shadow:0 2px 12px rgba(0,0,0,.25)}
+.__occs_rect{position:fixed;border:2px solid #6c7cff;border-radius:10px;box-shadow:0 0 0 20000px rgba(0,0,0,0.08);pointer-events:none;backdrop-filter:saturate(120%) brightness(105%)}

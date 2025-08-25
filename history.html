@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Clipboard History - Copy Master Pro</title>
+    <link rel="stylesheet" href="popup.css" />
+    <style>
+      body {
+        width: 100%;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      .search-bar {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+      .search-input {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--card);
+        color: var(--ink);
+      }
+
+      .filter-select {
+        padding: 10px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--card);
+        color: var(--ink);
+      }
+
+      .history-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+      }
+
+      .history-item {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 15px;
+        cursor: pointer;
+        transition: 0.15s transform, 0.15s background;
+      }
+
+      .history-item:hover {
+        transform: translateY(-2px);
+        background: #1a1f3a;
+      }
+
+      .item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+
+      .item-kind {
+        background: var(--primary1);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 600;
+      }
+
+      .item-time {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .item-preview {
+        color: var(--ink);
+        font-size: 13px;
+        line-height: 1.4;
+        margin-bottom: 10px;
+        word-break: break-word;
+      }
+
+      .item-source {
+        color: var(--muted);
+        font-size: 11px;
+        text-decoration: underline;
+        cursor: pointer;
+      }
+
+      .item-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .action-btn {
+        background: none;
+        border: 1px solid var(--line);
+        color: var(--ink);
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 11px;
+        cursor: pointer;
+        transition: 0.15s background;
+      }
+
+      .action-btn:hover {
+        background: var(--primary1);
+      }
+
+      .stats {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding: 15px;
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+      }
+
+      .export-btn {
+        background: var(--accent);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--muted);
+      }
+
+      .empty-state h3 {
+        margin-bottom: 10px;
+        color: var(--ink);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="hd">
+        <div class="brand">
+          <div class="pro">📋 One-Click Pro</div>
+          <div class="title">Clipboard History</div>
+        </div>
+      </header>
+
+      <div class="stats">
+        <div>
+          <strong id="totalCount">0</strong> items •
+          <span id="filteredCount">0</span> shown
+        </div>
+        <button id="exportBtn" class="export-btn">Export History</button>
+      </div>
+
+      <div class="search-bar">
+        <input
+          type="text"
+          id="searchInput"
+          class="search-input"
+          placeholder="Search history..."
+        />
+        <select id="filterSelect" class="filter-select">
+          <option value="">All Types</option>
+          <option value="Text">Text</option>
+          <option value="HTML">HTML</option>
+          <option value="Markdown">Markdown</option>
+          <option value="CSV">CSV</option>
+          <option value="JSON">JSON</option>
+          <option value="Code">Code</option>
+          <option value="Image">Image</option>
+          <option value="Color">Color</option>
+          <option value="Links">Links</option>
+        </select>
+        <button id="clearBtn" class="btn">Clear All</button>
+      </div>
+
+      <div id="historyGrid" class="history-grid">
+        <!-- History items will be populated here -->
+      </div>
+
+      <div id="emptyState" class="empty-state" style="display: none">
+        <h3>No History Found</h3>
+        <p>Start copying content to build your history!</p>
+      </div>
+    </div>
+
+    <div
+      style="
+        text-align: center;
+        margin-top: 20px;
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+      "
+    >
+      <button
+        id="helpBtn"
+        class="btn"
+        title="Help & Documentation"
+        style="padding: 4px 8px; font-size: 14px"
+      >
+        ❓ Help Documentation
+      </button>
+      <button
+        id="requestFeatureBtn"
+        class="btn"
+        title="Request a Feature"
+        style="padding: 4px 8px; font-size: 14px"
+      >
+        💡 Request Feature
+      </button>
+    </div>
+
+    <script src="history.js"></script>
+  </body>
+</html>
