@@ -9,9 +9,358 @@
     hoverEl: null,
     overlay: null,
     toast: null,
+    fab: null,
+    fabVisible: false,
   };
 
   // ---- Tunables ----
+
+  // ---- Error Handling & Recovery ----
+  const ErrorTypes = {
+    NETWORK: 'network',
+    PERMISSION: 'permission',
+    STORAGE: 'storage',
+    CLIPBOARD: 'clipboard',
+    INJECTION: 'injection',
+    UNKNOWN: 'unknown'
+  };
+
+  function categorizeError(error) {
+    const message = error.message || error.toString();
+    if (message.includes('network') || message.includes('fetch')) return ErrorTypes.NETWORK;
+    if (message.includes('permission') || message.includes('access')) return ErrorTypes.PERMISSION;
+    if (message.includes('storage') || message.includes('quota')) return ErrorTypes.STORAGE;
+    if (message.includes('clipboard') || message.includes('copy')) return ErrorTypes.CLIPBOARD;
+    if (message.includes('inject') || message.includes('script')) return ErrorTypes.INJECTION;
+    return ErrorTypes.UNKNOWN;
+  }
+
+  function getErrorMessage(error, type) {
+    const messages = {
+      [ErrorTypes.NETWORK]: "Network error. Check your connection and try again.",
+      [ErrorTypes.PERMISSION]: "Permission denied. Please refresh the page and try again.",
+      [ErrorTypes.STORAGE]: "Storage error. Your data may be full. Try clearing some history.",
+      [ErrorTypes.CLIPBOARD]: "Clipboard access denied. Please allow clipboard permissions.",
+      [ErrorTypes.INJECTION]: "Cannot access this page. Try a different website.",
+      [ErrorTypes.UNKNOWN]: "An unexpected error occurred. Please try again."
+    };
+    return messages[type] || messages[ErrorTypes.UNKNOWN];
+  }
+
+  function getRecoveryAction(type) {
+    const actions = {
+      [ErrorTypes.NETWORK]: () => {
+        toast("Retrying in 3 seconds...");
+        setTimeout(() => location.reload(), 3000);
+      },
+      [ErrorTypes.PERMISSION]: () => {
+        toast("Please refresh the page to grant permissions");
+      },
+      [ErrorTypes.STORAGE]: () => {
+        toast("Storage full. Consider clearing history");
+      },
+      [ErrorTypes.CLIPBOARD]: () => {
+        toast("Please allow clipboard access in browser settings");
+      },
+      [ErrorTypes.INJECTION]: () => {
+        toast("This page is restricted. Try a regular website");
+      },
+      [ErrorTypes.UNKNOWN]: () => {
+        toast("Error occurred. Please try again");
+      }
+    };
+    return actions[type] || actions[ErrorTypes.UNKNOWN];
+  }
+
+  function handleError(error, context = '') {
+    const type = categorizeError(error);
+    const message = getErrorMessage(error, type);
+    const recovery = getRecoveryAction(type);
+    
+    console.error(`Copy Master Pro Error [${type}]${context ? ` in ${context}` : ''}:`, error);
+    
+    // Show user-friendly error message
+    toast(message);
+    
+    // Log error for debugging
+    logError(error, type, context);
+    
+    // Suggest recovery action
+    setTimeout(() => {
+      if (type === ErrorTypes.NETWORK || type === ErrorTypes.UNKNOWN) {
+        recovery();
+      }
+    }, 2000);
+  }
+
+  async function logError(error, type, context) {
+    try {
+      const errorLog = {
+        timestamp: Date.now(),
+        type,
+        context,
+        message: error.message || error.toString(),
+        stack: error.stack,
+        userAgent: navigator.userAgent,
+        url: location.href
+      };
+      
+      const { errorLogs = [] } = await chrome.storage.local.get({ errorLogs: [] });
+      errorLogs.unshift(errorLog);
+      
+      // Keep only last 50 errors
+      if (errorLogs.length > 50) {
+        errorLogs.length = 50;
+      }
+      
+      await chrome.storage.local.set({ errorLogs });
+    } catch (logError) {
+      console.warn('Failed to log error:', logError);
+    }
+  }
+
+  // Enhanced retry mechanism
+  async function retryOperation(operation, maxRetries = 3, delay = 1000) {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        return await operation();
+      } catch (error) {
+        if (attempt === maxRetries) {
+          throw error;
+        }
+        
+        console.warn(`Operation failed (attempt ${attempt}/${maxRetries}), retrying in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        delay *= 2; // Exponential backoff
+      }
+    }
+  }
+
+  // ---- Floating Action Button ----
+  async function getMostUsedFeatures() {
+    try {
+      const { featureUsage = {} } = await chrome.storage.local.get({ featureUsage: {} });
+      const sortedFeatures = Object.entries(featureUsage)
+        .sort(([,a], [,b]) => b - a)
+        .slice(0, 5)
+        .map(([feature]) => feature);
+      
+      return sortedFeatures.length > 0 ? sortedFeatures : ['clean_copy', 'text_statistics', 'base64_encode', 'color_picker', 'quick_notes'];
+    } catch (error) {
+      return ['clean_copy', 'text_statistics', 'base64_encode', 'color_picker', 'quick_notes'];
+    }
+  }
+
+  async function trackFeatureUsage(feature) {
+    try {
+      const { featureUsage = {} } = await chrome.storage.local.get({ featureUsage: {} });
+      featureUsage[feature] = (featureUsage[feature] || 0) + 1;
+      await chrome.storage.local.set({ featureUsage });
+    } catch (error) {
+      console.warn('Failed to track feature usage:', error);
+    }
+  }
+
+  function createFloatingActionButton() {
+    if (S.fab) return S.fab;
+    
+    const fab = document.createElement("div");
+    fab.id = "__occs_fab";
+    fab.style.cssText = `
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 50%;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      cursor: pointer;
+      z-index: 2147483645;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: white;
+      transition: all 0.3s ease;
+      user-select: none;
+      opacity: 0;
+      transform: scale(0);
+    `;
+    fab.textContent = "⚡";
+    fab.title = "Copy Master Pro - Quick Actions";
+    fab.setAttribute('role', 'button');
+    fab.setAttribute('aria-label', 'Copy Master Pro Quick Actions');
+    fab.setAttribute('tabindex', '0');
+    
+    // Hover effects
+    fab.addEventListener('mouseenter', () => {
+      fab.style.transform = 'scale(1.1)';
+      fab.style.boxShadow = '0 6px 25px rgba(0,0,0,0.4)';
+    });
+    
+    fab.addEventListener('mouseleave', () => {
+      fab.style.transform = 'scale(1)';
+      fab.style.boxShadow = '0 4px 20px rgba(0,0,0,0.3)';
+    });
+    
+    // Click handler
+    fab.addEventListener('click', toggleFabMenu);
+    
+    // Keyboard support
+    fab.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggleFabMenu();
+      }
+    });
+    
+    document.documentElement.appendChild(fab);
+    S.fab = fab;
+    
+    // Animate in
+    setTimeout(() => {
+      fab.style.opacity = '1';
+      fab.style.transform = 'scale(1)';
+    }, 100);
+    
+    return fab;
+  }
+
+  async function toggleFabMenu() {
+    if (S.fabVisible) {
+      hideFabMenu();
+    } else {
+      await showFabMenu();
+    }
+  }
+
+  async function showFabMenu() {
+    if (S.fabVisible) return;
+    
+    const fab = S.fab;
+    const features = await getMostUsedFeatures();
+    const featureNames = {
+      'clean_copy': 'Clean Copy',
+      'text_statistics': 'Text Stats',
+      'base64_encode': 'Base64',
+      'color_picker': 'Color',
+      'quick_notes': 'Notes',
+      'text': 'Text',
+      'html': 'HTML',
+      'markdown': 'Markdown',
+      'json_format': 'JSON',
+      'code_syntax': 'Code'
+    };
+    
+    // Create menu
+    const menu = document.createElement("div");
+    menu.id = "__occs_fab_menu";
+    menu.style.cssText = `
+      position: fixed;
+      bottom: 90px;
+      right: 20px;
+      background: rgba(0,0,0,0.9);
+      border-radius: 12px;
+      padding: 10px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.1);
+      z-index: 2147483644;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s ease;
+    `;
+    
+    // Add feature buttons
+    features.forEach((feature, index) => {
+      const button = document.createElement("button");
+      button.style.cssText = `
+        display: block;
+        width: 100%;
+        padding: 8px 12px;
+        margin: 2px 0;
+        background: rgba(255,255,255,0.1);
+        border: none;
+        border-radius: 6px;
+        color: white;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-align: left;
+      `;
+      button.textContent = featureNames[feature] || feature;
+      button.title = feature;
+      
+      button.addEventListener('mouseenter', () => {
+        button.style.background = 'rgba(255,255,255,0.2)';
+      });
+      
+      button.addEventListener('mouseleave', () => {
+        button.style.background = 'rgba(255,255,255,0.1)';
+      });
+      
+      button.addEventListener('click', async () => {
+        await trackFeatureUsage(feature);
+        await perform(feature);
+        hideFabMenu();
+      });
+      
+      // Keyboard support
+      button.addEventListener('keydown', async (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          await trackFeatureUsage(feature);
+          await perform(feature);
+          hideFabMenu();
+        }
+      });
+      
+      menu.appendChild(button);
+    });
+    
+    document.documentElement.appendChild(menu);
+    
+    // Animate in
+    setTimeout(() => {
+      menu.style.opacity = '1';
+      menu.style.transform = 'translateY(0)';
+    }, 50);
+    
+    S.fabVisible = true;
+    
+    // Close on outside click
+    const closeHandler = (e) => {
+      if (!menu.contains(e.target) && e.target !== fab) {
+        hideFabMenu();
+        document.removeEventListener('click', closeHandler);
+      }
+    };
+    
+    setTimeout(() => {
+      document.addEventListener('click', closeHandler);
+    }, 100);
+  }
+
+  function hideFabMenu() {
+    const menu = document.getElementById("__occs_fab_menu");
+    if (menu) {
+      menu.style.opacity = '0';
+      menu.style.transform = 'translateY(20px)';
+      setTimeout(() => {
+        menu.remove();
+      }, 300);
+    }
+    S.fabVisible = false;
+  }
+
+  // Initialize FAB
+  function initializeFAB() {
+    // Only show FAB on regular websites
+    if (location.protocol === 'http:' || location.protocol === 'https:') {
+      createFloatingActionButton();
+    }
+  }
 
   // ---- UI helpers ----
   function toast(msg) {
@@ -20,6 +369,8 @@
     } catch {}
     const t = document.createElement("div");
     t.className = "__occs_toast";
+    t.setAttribute('role', 'alert');
+    t.setAttribute('aria-live', 'polite');
     Object.assign(t.style, {
       position: "fixed",
       left: "50%",
@@ -177,22 +528,30 @@
 
   async function copyText(txt) {
     if (!txt) throw new Error("Nothing to copy");
-    try {
-      await navigator.clipboard.writeText(txt);
-    } catch {
-      const ta = document.createElement("textarea");
-      ta.value = txt;
-      Object.assign(ta.style, {
-        position: "fixed",
-        opacity: "0",
-        left: "-9999px",
-      });
-      document.body.appendChild(ta);
-      ta.focus();
-      ta.select();
-      document.execCommand("copy");
-      ta.remove();
-    }
+    
+    return await retryOperation(async () => {
+      try {
+        await navigator.clipboard.writeText(txt);
+      } catch (error) {
+        // Fallback to legacy method
+        const ta = document.createElement("textarea");
+        ta.value = txt;
+        Object.assign(ta.style, {
+          position: "fixed",
+          opacity: "0",
+          left: "-9999px",
+        });
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        
+        try {
+          document.execCommand("copy");
+        } finally {
+          ta.remove();
+        }
+      }
+    }, 2, 500);
   }
 
   async function pushHistory(item) {
@@ -202,7 +561,7 @@
         item,
       });
     } catch (error) {
-      console.error("History push failed:", error);
+      handleError(error, 'pushHistory');
     }
   }
 
@@ -472,8 +831,7 @@
       try {
         await onChoose(el);
       } catch (err) {
-        console.error(err);
-        toast("Action failed");
+        handleError(err, 'pickerAction');
       } finally {
         S.busy = false;
       }
@@ -886,6 +1244,47 @@
             ts: Date.now(),
           });
           toast(`${caseType} case copied`);
+        } else if (mode === "text_statistics") {
+          const txt = textOf(el);
+          const stats = getTextStatistics(txt);
+          const formatted = formatTextStatistics(stats);
+          await copyText(formatted);
+          await pushHistory({
+            kind: "Text Statistics",
+            preview: `${stats.words} words, ${stats.readingTime} min read`,
+            data: formatted,
+            src: location.href,
+            ts: Date.now(),
+          });
+          toast(`Statistics: ${stats.words} words, ${stats.readingTime} min read`);
+        } else if (mode === "base64_encode") {
+          const txt = textOf(el);
+          const encoded = base64Encode(txt);
+          await copyText(encoded);
+          await pushHistory({
+            kind: "Base64 Encoded",
+            preview: encoded.slice(0, 100) + "...",
+            data: encoded,
+            src: location.href,
+            ts: Date.now(),
+          });
+          toast("Base64 encoded text copied");
+        } else if (mode === "base64_decode") {
+          const txt = textOf(el);
+          if (!isBase64(txt.trim())) {
+            toast("Text doesn't appear to be Base64 encoded");
+            return;
+          }
+          const decoded = base64Decode(txt);
+          await copyText(decoded);
+          await pushHistory({
+            kind: "Base64 Decoded",
+            preview: decoded.slice(0, 300),
+            data: decoded,
+            src: location.href,
+            ts: Date.now(),
+          });
+          toast("Base64 decoded text copied");
         } else {
           const txt = textOf(el);
           await copyText(txt);
@@ -1628,6 +2027,77 @@
       .replace(/\{url\}/g, location.href);
   }
 
+  // Text Statistics Functions
+  function getTextStatistics(text) {
+    if (!text || typeof text !== 'string') {
+      return {
+        characters: 0,
+        charactersNoSpaces: 0,
+        words: 0,
+        sentences: 0,
+        paragraphs: 0,
+        readingTime: 0,
+        readingTimeMinutes: 0
+      };
+    }
+
+    const characters = text.length;
+    const charactersNoSpaces = text.replace(/\s/g, '').length;
+    const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0).length;
+    const paragraphs = text.split(/\n\s*\n/).filter(p => p.trim().length > 0).length;
+    
+    // Average reading speed: 200-250 words per minute
+    const wordsPerMinute = 225;
+    const readingTime = words / wordsPerMinute;
+    const readingTimeMinutes = Math.ceil(readingTime);
+
+    return {
+      characters,
+      charactersNoSpaces,
+      words,
+      sentences,
+      paragraphs,
+      readingTime: Math.round(readingTime * 10) / 10,
+      readingTimeMinutes
+    };
+  }
+
+  function formatTextStatistics(stats) {
+    return `📊 Text Statistics:
+Characters: ${stats.characters.toLocaleString()}
+Characters (no spaces): ${stats.charactersNoSpaces.toLocaleString()}
+Words: ${stats.words.toLocaleString()}
+Sentences: ${stats.sentences.toLocaleString()}
+Paragraphs: ${stats.paragraphs.toLocaleString()}
+Reading time: ${stats.readingTime} minutes (${stats.readingTimeMinutes} min)`;
+  }
+
+  // Base64 Encode/Decode Functions
+  function base64Encode(text) {
+    try {
+      return btoa(unescape(encodeURIComponent(text)));
+    } catch (error) {
+      throw new Error("Failed to encode text to Base64");
+    }
+  }
+
+  function base64Decode(encodedText) {
+    try {
+      return decodeURIComponent(escape(atob(encodedText)));
+    } catch (error) {
+      throw new Error("Failed to decode Base64 text");
+    }
+  }
+
+  function isBase64(str) {
+    try {
+      return btoa(atob(str)) === str;
+    } catch (err) {
+      return false;
+    }
+  }
+
   function buildFileName(el, prefix) {
     // Get custom filename pattern from storage
     return chrome.storage.local
@@ -1654,6 +2124,11 @@
       toast("Please wait…");
       return;
     }
+    
+    // Track feature usage
+    await trackFeatureUsage(mode);
+    
+    try {
     if (mode === "image_save") return startImageSave();
     if (mode === "image_clip") return startImageCopy();
     if (mode === "color_picker") return startColorPicker();
@@ -1712,6 +2187,20 @@
         const caseType = mode.replace("case_", "");
         kind = `Text (${caseType})`;
         data = convertCase(sel, caseType);
+      } else if (mode === "text_statistics") {
+        kind = "Text Statistics";
+        const stats = getTextStatistics(sel);
+        data = formatTextStatistics(stats);
+      } else if (mode === "base64_encode") {
+        kind = "Base64 Encoded";
+        data = base64Encode(sel);
+      } else if (mode === "base64_decode") {
+        if (!isBase64(sel.trim())) {
+          toast("Text doesn't appear to be Base64 encoded");
+          return;
+        }
+        kind = "Base64 Decoded";
+        data = base64Decode(sel);
       }
 
       await copyText(data);
@@ -1726,6 +2215,9 @@
       return;
     }
     startPicker(mode);
+    } catch (error) {
+      handleError(error, 'perform');
+    }
   }
 
   chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
@@ -1735,4 +2227,7 @@
       return true;
     }
   });
+
+  // Initialize FAB after a short delay
+  setTimeout(initializeFAB, 1000);
 })();

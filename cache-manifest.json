@@ -1,0 +1,55 @@
+{
+  "version": "1.0.0",
+  "cache": [
+    "popup.html",
+    "popup.css",
+    "popup.js",
+    "content.js",
+    "content.css",
+    "service_worker.js",
+    "history.html",
+    "history.js",
+    "snippets.html",
+    "snippets.js",
+    "site-rules.html",
+    "site-rules.js",
+    "quick-notes.html",
+    "quick-notes.js",
+    "help.html",
+    "help.js",
+    "icons/icon128.png",
+    "icons/icon32.png",
+    "icons/icon16.png"
+  ],
+  "offline": {
+    "popup": "popup.html",
+    "history": "history.html",
+    "snippets": "snippets.html",
+    "notes": "quick-notes.html",
+    "help": "help.html"
+  },
+  "strategies": {
+    "cacheFirst": [
+      "icons/",
+      "popup.css",
+      "content.css"
+    ],
+    "networkFirst": [
+      "popup.html",
+      "history.html",
+      "snippets.html",
+      "quick-notes.html",
+      "help.html"
+    ],
+    "staleWhileRevalidate": [
+      "popup.js",
+      "content.js",
+      "service_worker.js",
+      "history.js",
+      "snippets.js",
+      "site-rules.js",
+      "quick-notes.js",
+      "help.js"
+    ]
+  }
+}

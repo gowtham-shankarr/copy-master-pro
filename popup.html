@@ -10,7 +10,17 @@
     <div class="wrap">
       <header class="hd">
         <div class="brand">
-          <div class="pro">📋 Copy Master Pro</div>
+          <div class="pro">
+            <img
+              src="icons/icon128.png"
+              alt="Copy Master Pro"
+              style="width: 20px; height: 20px"
+            />
+            Copy Master Pro
+          </div>
+          <div id="offlineIndicator" class="offline-indicator" style="display: none;">
+            <span>📡 Offline</span>
+          </div>
         </div>
       </header>
 
@@ -26,6 +36,9 @@
           <button id="tableExportEnhanced" class="btn">Table → CSV/TSV</button>
           <button id="jsonFormat" class="btn">Format JSON</button>
           <button id="codeSyntax" class="btn">Code Syntax</button>
+          <button id="textStatistics" class="btn">Text Statistics</button>
+          <button id="base64Encode" class="btn">Base64 Encode</button>
+          <button id="base64Decode" class="btn">Base64 Decode</button>
           <button id="colorPicker" class="btn">Color Picker</button>
           <button id="imgCopy" class="btn">Copy Image → Clipboard</button>
           <button id="imgSave" class="btn">Save Image → File</button>
@@ -87,12 +100,15 @@
             Clipboard History
           </button>
           <button id="openSnippetsLibrary" class="btn">Snippets Library</button>
+          <button id="openQuickNotes" class="btn">Quick Notes</button>
           <button id="manageSiteRules" class="btn">Per-Site Rules</button>
           <button id="setFileNamePattern" class="btn">
             File Naming Tokens
           </button>
           <button id="saveAsSnippet" class="btn">Save as Snippet</button>
           <button id="applySiteRules" class="btn">Apply Site Rules</button>
+          <button id="encryptionSettings" class="btn">Encryption Settings</button>
+          <button id="viewErrorLogs" class="btn">Error Logs</button>
         </div>
         <div class="hint">
           Suggested tokens: <code>{title}</code> <code>{date}</code>

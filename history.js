@@ -166,11 +166,15 @@ function toast(message) {
 
 let allHistory = [];
 let filteredHistory = [];
+let currentPage = 0;
+const ITEMS_PER_PAGE = 20;
+let isLoading = false;
 
 // Initialize the page
 document.addEventListener("DOMContentLoaded", async () => {
   await loadHistory();
   setupEventListeners();
+  setupInfiniteScroll();
   renderHistory();
 });
 
@@ -189,9 +193,70 @@ async function loadHistory() {
 
 // Setup event listeners
 function setupEventListeners() {
-  // Search functionality
-  qs("#searchInput").addEventListener("input", (e) => {
+  // Enhanced search functionality
+  const searchInput = qs("#searchInput");
+  let suggestionsContainer = null;
+  
+  searchInput.addEventListener("input", (e) => {
+    const searchTerm = e.target.value;
+    
+    // Remove existing suggestions
+    if (suggestionsContainer) {
+      suggestionsContainer.remove();
+      suggestionsContainer = null;
+    }
+    
+    // Show suggestions for longer search terms
+    if (searchTerm.length >= 2) {
+      const suggestions = getSearchSuggestions(searchTerm);
+      if (suggestions.length > 0) {
+        suggestionsContainer = createSearchSuggestions(suggestions);
+        searchInput.parentNode.style.position = 'relative';
+        searchInput.parentNode.appendChild(suggestionsContainer);
+        suggestionsContainer.style.display = 'block';
+      }
+    }
+    
     filterHistory();
+  });
+  
+  // Hide suggestions when clicking outside
+  document.addEventListener('click', (e) => {
+    if (suggestionsContainer && !searchInput.contains(e.target) && !suggestionsContainer.contains(e.target)) {
+      suggestionsContainer.style.display = 'none';
+    }
+  });
+  
+  // Keyboard navigation for suggestions
+  searchInput.addEventListener('keydown', (e) => {
+    if (suggestionsContainer && suggestionsContainer.style.display !== 'none') {
+      const items = suggestionsContainer.querySelectorAll('div');
+      const currentIndex = Array.from(items).findIndex(item => item.style.background === 'var(--primary1)');
+      
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const nextIndex = currentIndex < items.length - 1 ? currentIndex + 1 : 0;
+        items.forEach((item, index) => {
+          item.style.background = index === nextIndex ? 'var(--primary1)' : 'transparent';
+        });
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        const prevIndex = currentIndex > 0 ? currentIndex - 1 : items.length - 1;
+        items.forEach((item, index) => {
+          item.style.background = index === prevIndex ? 'var(--primary1)' : 'transparent';
+        });
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        const selectedItem = items[currentIndex];
+        if (selectedItem) {
+          searchInput.value = selectedItem.textContent;
+          filterHistory();
+          suggestionsContainer.style.display = 'none';
+        }
+      } else if (e.key === 'Escape') {
+        suggestionsContainer.style.display = 'none';
+      }
+    }
   });
 
   // Filter by type
@@ -256,18 +321,184 @@ function setupEventListeners() {
   });
 }
 
+// Setup infinite scroll
+function setupInfiniteScroll() {
+  const grid = qs("#historyGrid");
+  
+  // Add loading indicator
+  const loadingIndicator = document.createElement("div");
+  loadingIndicator.id = "loadingIndicator";
+  loadingIndicator.style.cssText = `
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 20px;
+    color: var(--muted);
+    display: none;
+  `;
+  loadingIndicator.innerHTML = `
+    <div style="display: inline-block; width: 20px; height: 20px; border: 2px solid var(--line); border-top: 2px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+    <span style="margin-left: 10px;">Loading more items...</span>
+  `;
+  grid.appendChild(loadingIndicator);
+
+  // Add CSS animation
+  const style = document.createElement("style");
+  style.textContent = `
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  `;
+  document.head.appendChild(style);
+
+  // Intersection Observer for infinite scroll
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && !isLoading && hasMoreItems()) {
+        loadMoreItems();
+      }
+    });
+  }, {
+    root: null,
+    rootMargin: '100px',
+    threshold: 0.1
+  });
+
+  observer.observe(loadingIndicator);
+}
+
+// Check if there are more items to load
+function hasMoreItems() {
+  const startIndex = currentPage * ITEMS_PER_PAGE;
+  return startIndex < filteredHistory.length;
+}
+
+// Load more items
+async function loadMoreItems() {
+  if (isLoading) return;
+  
+  isLoading = true;
+  const loadingIndicator = qs("#loadingIndicator");
+  loadingIndicator.style.display = "block";
+  
+  // Simulate loading delay for better UX
+  await new Promise(resolve => setTimeout(resolve, 300));
+  
+  currentPage++;
+  renderHistory();
+  
+  loadingIndicator.style.display = "none";
+  isLoading = false;
+}
+
+// Enhanced search functionality
+function highlightSearchTerm(text, searchTerm) {
+  if (!searchTerm) return text;
+  
+  const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+  return text.replace(regex, '<mark style="background: #fef08a; color: #92400e; padding: 1px 2px; border-radius: 2px;">$1</mark>');
+}
+
+function getSearchSuggestions(searchTerm) {
+  if (!searchTerm || searchTerm.length < 2) return [];
+  
+  const suggestions = new Set();
+  
+  allHistory.forEach(item => {
+    // Extract words from preview and data
+    const text = `${item.preview} ${item.data}`.toLowerCase();
+    const words = text.split(/\s+/).filter(word => 
+      word.length > 2 && word.includes(searchTerm.toLowerCase())
+    );
+    
+    words.forEach(word => suggestions.add(word));
+  });
+  
+  return Array.from(suggestions).slice(0, 5);
+}
+
+function createSearchSuggestions(suggestions) {
+  const container = document.createElement("div");
+  container.id = "searchSuggestions";
+  container.style.cssText = `
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+  `;
+  
+  suggestions.forEach(suggestion => {
+    const item = document.createElement("div");
+    item.style.cssText = `
+      padding: 8px 12px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--line);
+      font-size: 12px;
+    `;
+    item.textContent = suggestion;
+    
+    item.addEventListener('click', () => {
+      qs("#searchInput").value = suggestion;
+      filterHistory();
+      container.style.display = 'none';
+    });
+    
+    item.addEventListener('mouseenter', () => {
+      item.style.background = 'var(--primary1)';
+    });
+    
+    item.addEventListener('mouseleave', () => {
+      item.style.background = 'transparent';
+    });
+    
+    container.appendChild(item);
+  });
+  
+  return container;
+}
+
 // Filter history based on search and type
 function filterHistory() {
   const searchTerm = qs("#searchInput").value.toLowerCase();
   const filterType = qs("#filterSelect").value;
 
   filteredHistory = allHistory.filter((item) => {
-    // Search filter
-    const matchesSearch =
-      !searchTerm ||
-      item.preview.toLowerCase().includes(searchTerm) ||
-      item.data.toLowerCase().includes(searchTerm) ||
-      item.kind.toLowerCase().includes(searchTerm);
+    // Enhanced search filter
+    let matchesSearch = false;
+    
+    if (!searchTerm) {
+      matchesSearch = true;
+    } else {
+      // Search in multiple fields
+      const searchFields = [
+        item.preview,
+        item.data,
+        item.kind,
+        item.src,
+        new Date(item.ts).toLocaleDateString()
+      ];
+      
+      matchesSearch = searchFields.some(field => 
+        field && field.toString().toLowerCase().includes(searchTerm)
+      );
+      
+      // Fuzzy search for typos
+      if (!matchesSearch && searchTerm.length > 3) {
+        matchesSearch = searchFields.some(field => {
+          if (!field) return false;
+          const fieldStr = field.toString().toLowerCase();
+          return levenshteinDistance(searchTerm, fieldStr) <= 2;
+        });
+      }
+    }
 
     // Type filter
     const matchesType = !filterType || item.kind === filterType;
@@ -275,13 +506,45 @@ function filterHistory() {
     return matchesSearch && matchesType;
   });
 
+  // Reset pagination when filtering
+  currentPage = 0;
   renderHistory();
 }
 
-// Render history items
+// Levenshtein distance for fuzzy search
+function levenshteinDistance(str1, str2) {
+  const matrix = [];
+  
+  for (let i = 0; i <= str2.length; i++) {
+    matrix[i] = [i];
+  }
+  
+  for (let j = 0; j <= str1.length; j++) {
+    matrix[0][j] = j;
+  }
+  
+  for (let i = 1; i <= str2.length; i++) {
+    for (let j = 1; j <= str1.length; j++) {
+      if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1];
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1,
+          matrix[i][j - 1] + 1,
+          matrix[i - 1][j] + 1
+        );
+      }
+    }
+  }
+  
+  return matrix[str2.length][str1.length];
+}
+
+// Render history items with pagination
 function renderHistory() {
   const grid = qs("#historyGrid");
   const emptyState = qs("#emptyState");
+  const loadingIndicator = qs("#loadingIndicator");
 
   // Update counts
   qs("#totalCount").textContent = allHistory.length;
@@ -295,7 +558,17 @@ function renderHistory() {
 
   emptyState.style.display = "none";
 
-  grid.innerHTML = filteredHistory
+  // Calculate items to show
+  const startIndex = 0;
+  const endIndex = (currentPage + 1) * ITEMS_PER_PAGE;
+  const itemsToShow = filteredHistory.slice(startIndex, endIndex);
+
+  // Clear existing items (except loading indicator)
+  const existingItems = grid.querySelectorAll('.history-item');
+  existingItems.forEach(item => item.remove());
+
+  // Add new items
+  const itemsHTML = itemsToShow
     .map(
       (item) => `
     <div class="history-item" data-id="${item.ts}">
@@ -303,7 +576,7 @@ function renderHistory() {
         <span class="item-kind">${item.kind}</span>
         <span class="item-time">${formatTime(item.ts)}</span>
       </div>
-      <div class="item-preview">${escapeHtml(item.preview)}</div>
+      <div class="item-preview">${highlightSearchTerm(escapeHtml(item.preview), qs("#searchInput").value)}</div>
       <div class="item-source" data-url="${item.src}">${
         new URL(item.src).hostname
       }</div>
@@ -320,6 +593,18 @@ function renderHistory() {
   `
     )
     .join("");
+
+  // Insert items before loading indicator
+  if (loadingIndicator) {
+    loadingIndicator.insertAdjacentHTML('beforebegin', itemsHTML);
+  } else {
+    grid.insertAdjacentHTML('beforeend', itemsHTML);
+  }
+
+  // Show/hide loading indicator
+  if (loadingIndicator) {
+    loadingIndicator.style.display = hasMoreItems() ? "block" : "none";
+  }
 }
 
 // Copy item to clipboard
@@ -328,16 +613,52 @@ async function copyItem(timestamp) {
   if (!item) return;
 
   try {
-    await navigator.clipboard.writeText(item.data);
+    let data = item.data;
+    
+    // Handle encrypted data
+    if (typeof data === 'object' && data.encrypted) {
+      const password = prompt("Enter password to decrypt this item:");
+      if (!password) {
+        toast("Password required to decrypt");
+        return;
+      }
+      
+      const response = await chrome.runtime.sendMessage({
+        type: "OCCS_DECRYPT_DATA",
+        data: data,
+        password: password
+      });
+      
+      if (response.ok) {
+        data = response.data;
+      } else {
+        throw new Error(response.error || "Failed to decrypt data");
+      }
+    }
+    // Decompress data if it's compressed
+    else if (typeof data === 'object' && data.compressed) {
+      const response = await chrome.runtime.sendMessage({
+        type: "OCCS_DECOMPRESS_DATA",
+        data: data
+      });
+      
+      if (response.ok) {
+        data = response.data;
+      } else {
+        throw new Error("Failed to decompress data");
+      }
+    }
+    
+    await navigator.clipboard.writeText(data);
     toast("Copied to clipboard!");
   } catch (error) {
     console.error("Failed to copy:", error);
-    toast("Failed to copy");
+    toast("Failed to copy: " + error.message);
   }
 }
 
 // View full item content
-function viewFull(timestamp) {
+async function viewFull(timestamp) {
   const item = allHistory.find((h) => h.ts.toString() === timestamp);
   if (!item) return;
 
@@ -367,17 +688,19 @@ function viewFull(timestamp) {
     color: var(--ink);
   `;
 
+  // Show loading state
   content.innerHTML = `
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
       <h3 style="margin: 0;">${item.kind}</h3>
-              <button class="modal-close" style="background: none; border: none; color: var(--ink); font-size: 20px; cursor: pointer;">×</button>
+      <button class="modal-close" style="background: none; border: none; color: var(--ink); font-size: 20px; cursor: pointer;">×</button>
     </div>
     <div style="margin-bottom: 15px; color: var(--muted); font-size: 12px;">
       ${formatTime(item.ts)} • ${new URL(item.src).hostname}
     </div>
-    <pre style="background: #1a1f3a; padding: 15px; border-radius: 8px; overflow-x: auto; white-space: pre-wrap; word-break: break-word;">${escapeHtml(
-      item.data
-    )}</pre>
+    <div style="text-align: center; padding: 20px;">
+      <div style="display: inline-block; width: 20px; height: 20px; border: 2px solid var(--line); border-top: 2px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+      <span style="margin-left: 10px;">Loading content...</span>
+    </div>
   `;
 
   modal.appendChild(content);
@@ -393,6 +716,68 @@ function viewFull(timestamp) {
   modal.addEventListener("click", (e) => {
     if (e.target === modal) modal.remove();
   });
+
+  // Load and display content
+  try {
+    let data = item.data;
+    
+    // Handle encrypted data
+    if (typeof data === 'object' && data.encrypted) {
+      const password = prompt("Enter password to decrypt this item:");
+      if (!password) {
+        const errorDiv = document.createElement("div");
+        errorDiv.style.cssText = "text-align: center; padding: 20px; color: #f56565;";
+        errorDiv.textContent = "Password required to decrypt";
+        
+        const loadingDiv = content.querySelector('div[style*="text-align: center"]');
+        loadingDiv.parentNode.replaceChild(errorDiv, loadingDiv);
+        return;
+      }
+      
+      const response = await chrome.runtime.sendMessage({
+        type: "OCCS_DECRYPT_DATA",
+        data: data,
+        password: password
+      });
+      
+      if (response.ok) {
+        data = response.data;
+      } else {
+        throw new Error(response.error || "Failed to decrypt data");
+      }
+    }
+    // Decompress data if it's compressed
+    else if (typeof data === 'object' && data.compressed) {
+      const response = await chrome.runtime.sendMessage({
+        type: "OCCS_DECOMPRESS_DATA",
+        data: data
+      });
+      
+      if (response.ok) {
+        data = response.data;
+      } else {
+        throw new Error("Failed to decompress data");
+      }
+    }
+    
+    // Update content with actual data
+    const preElement = document.createElement("pre");
+    preElement.style.cssText = "background: #1a1f3a; padding: 15px; border-radius: 8px; overflow-x: auto; white-space: pre-wrap; word-break: break-word;";
+    preElement.textContent = data;
+    
+    // Replace loading content
+    const loadingDiv = content.querySelector('div[style*="text-align: center"]');
+    loadingDiv.parentNode.replaceChild(preElement, loadingDiv);
+    
+  } catch (error) {
+    console.error("Failed to load content:", error);
+    const errorDiv = document.createElement("div");
+    errorDiv.style.cssText = "text-align: center; padding: 20px; color: #f56565;";
+    errorDiv.textContent = "Failed to load content: " + error.message;
+    
+    const loadingDiv = content.querySelector('div[style*="text-align: center"]');
+    loadingDiv.parentNode.replaceChild(errorDiv, loadingDiv);
+  }
 }
 
 // Delete item
